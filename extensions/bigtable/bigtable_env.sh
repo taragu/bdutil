@@ -56,3 +56,6 @@ GCE_SERVICE_ACCOUNT_SCOPES+=(
   'https://www.googleapis.com/auth/cloud-bigtable.data'
   'https://www.googleapis.com/auth/cloud-bigtable.data.readonly'
 )
+
+export ALPN_JAVA_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
+export ALPN_CLASSPATH

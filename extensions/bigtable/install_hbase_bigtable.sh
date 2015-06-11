@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 set -o nounset
 set -o errexit
 
@@ -58,6 +59,7 @@ add_to_path_at_login "${HBASE_INSTALL_DIR}/bin"
 # Assign ownership of everything to the 'hadoop' user.
 chown -R hadoop:hadoop /home/hadoop/ "${HBASE_INSTALL_DIR}"
 
+
 # Update hadoop-env.sh with alpn boot classpath.  Create an environment variable
 # BIGTABLE_BOOT_OPTS that makes command line requests a bit easier.
 echo -e "" >> "${HADOOP_CONF_DIR}/hadoop-env.sh"
@@ -78,3 +80,48 @@ echo -e "YARN_OPTS=\"\${YARN_OPTS} -Dyarn.app.mapreduce.am.command-opts=\"${BIGT
 # the hbase classpath.
 echo -e "HBASE_OPTS=\"\${HBASE_OPTS} ${BIGTABLE_BOOT_OPTS}\"" >> "${HBASE_CONF_DIR}/hbase-env.sh"
 
+# Configure Spark
+if [ -d "/home/hadoop/spark-install/" ]; then
+    SPARK_HOME="/home/hadoop/spark-install"
+    export MASTER=spark:\/\/${MASTER_HOSTNAME}:7077
+    export SPARK_LOCAL_IP=${MASTER_HOSTNAME}
+    export SPARK_MASTER_HOST=${MASTER_HOSTNAME}
+    export SPARK_CONF_DIR=${SPARK_HOME}\/conf
+    export SPARK_MASTER_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
+    export SPARK_DAEMON_JAVA_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
+    export SPARK_EXECUTOR_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
+    export SPARK_WORKER_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
+
+    PATH=${SPARK_HOME}/bin:$PATH
+    export BIGTABLE_CLASSPATH
+    # Merge spark-install/conf/core-site.xml with its template
+    bdconfig merge_configurations \
+	--configuration_file ${HADOOP_CONF_DIR}/core-site.xml \
+	--source_configuration_file spark-core-template.xml \
+	--resolve_environment_variables
+
+    bdconfig merge_configurations \
+	--configuration_file ${HADOOP_CONF_DIR}/core-site.xml \
+	--source_configuration_file ${HBASE_CONF_DIR}/hbase-site.xml \
+	--resolve_environment_variables
+    
+    HBASE_CLASSPATH="$(${HBASE_INSTALL_DIR}/bin/hbase classpath)"
+
+    # Setup classpath and bootstrap classpath
+    echo -e "spark.executor.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+    echo -e "spark.driver.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+    echo -e "spark.jars ${HBASE_CLASSPATH//:/,}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+
+    # Add PREFIX to env so that applications can use it to create a Spark Context
+    echo -e "export PREFIX=${PREFIX}" >> "${SPARK_HOME}/conf/spark-env.sh"
+    
+    # Spark-shell: include jars and ALPN on bootstrap classpath
+    sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --jars ${HBASE_CLASSPATH//:/,}) \n SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS}) \n" "${SPARK_HOME}/bin/utils.sh"
+
+else 
+    # if the SCALA_TARBALL_URI is set, it means the user includes spark_env.sh in the arguments of bdutil, but put it before bigtable_env.sh
+    if [ ! -z "${SCALA_TARBALL_URI:-}" ]; then 
+	logerror "IF YOU ARE CONFIGURING HADOOP, SPARK, AND BIGTABLE, PLEASE PUT THE INPUT ARGUMENTS OF BDUTIL IN THIS ORDER: HADOOP --> SPARK --> BIGTABLE."
+	exit 1
+    fi
+fi
