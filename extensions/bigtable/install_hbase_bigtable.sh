@@ -83,7 +83,7 @@ echo -e "HBASE_OPTS=\"\${HBASE_OPTS} ${BIGTABLE_BOOT_OPTS}\"" >> "${HBASE_CONF_D
 # Configure Spark
 if [ -d "/home/hadoop/spark-install/" ]; then
     SPARK_HOME="/home/hadoop/spark-install"
-    export MASTER=spark:\/\/${MASTER_HOSTNAME}:7077
+    export MASTER="spark://${MASTER_HOSTNAME}:7077"
     export SPARK_LOCAL_IP=${MASTER_HOSTNAME}
     export SPARK_MASTER_HOST=${MASTER_HOSTNAME}
     export SPARK_CONF_DIR=${SPARK_HOME}\/conf
@@ -91,20 +91,8 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     export SPARK_DAEMON_JAVA_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
     export SPARK_EXECUTOR_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
     export SPARK_WORKER_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
-
     PATH=${SPARK_HOME}/bin:$PATH
-    export BIGTABLE_CLASSPATH
-    # Merge spark-install/conf/core-site.xml with its template
-    bdconfig merge_configurations \
-	--configuration_file ${HADOOP_CONF_DIR}/core-site.xml \
-	--source_configuration_file spark-core-template.xml \
-	--resolve_environment_variables
-
-    bdconfig merge_configurations \
-	--configuration_file ${HADOOP_CONF_DIR}/core-site.xml \
-	--source_configuration_file ${HBASE_CONF_DIR}/hbase-site.xml \
-	--resolve_environment_variables
-    
+    export BIGTABLE_CLASSPATH    
     HBASE_CLASSPATH="$(${HBASE_INSTALL_DIR}/bin/hbase classpath)"
 
     # Setup classpath and bootstrap classpath
