@@ -93,6 +93,17 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     export SPARK_WORKER_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
     PATH=${SPARK_HOME}/bin:$PATH
     export BIGTABLE_CLASSPATH    
+    # Merge spark-install/conf/core-site.xml with its template
+    bdconfig merge_configurations \
+	--configuration_file ${SPARK_HOME}/conf/core-site.xml \
+	--source_configuration_file spark-core-template.xml \
+	--resolve_environment_variables
+
+    bdconfig merge_configurations \
+	--configuration_file ${SPARK_HOME}/conf/core-site.xml \
+	--source_configuration_file ${HBASE_CONF_DIR}/hbase-site.xml \
+	--resolve_environment_variables
+    
     HBASE_CLASSPATH="$(${HBASE_INSTALL_DIR}/bin/hbase classpath)"
 
     # Setup classpath and bootstrap classpath

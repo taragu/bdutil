@@ -1,0 +1,18 @@
+<configuration> 
+ <property>
+   <name>org.apache.spark.java.opts</name>
+   <value><envVar name="BIGTABLE_BOOT_OPTS"/></value>
+ </property>
+ <property>
+   <name>org.apache.spark.api.java.opts</name>
+   <value><envVar name="BIGTABLE_BOOT_OPTS"/></value>
+ </property>
+ <property>
+   <name>org.apache.spark.sql.api.java.opts</name>
+   <value><envVar name="BIGTABLE_BOOT_OPTS"/></value>
+ </property>
+ <property>
+   <name>org.apache.spark.streaming.api.java.opts</name>
+   <value><envVar name="BIGTABLE_BOOT_OPTS"/></value>
+ </property>
+</configuration>
