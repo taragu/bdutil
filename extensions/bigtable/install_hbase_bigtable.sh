@@ -93,29 +93,21 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     export SPARK_WORKER_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
     PATH=${SPARK_HOME}/bin:$PATH
     export BIGTABLE_CLASSPATH    
-    # Merge spark-install/conf/core-site.xml with its template
-    bdconfig merge_configurations \
-	--configuration_file ${SPARK_HOME}/conf/core-site.xml \
-	--source_configuration_file spark-core-template.xml \
-	--resolve_environment_variables
-
-    bdconfig merge_configurations \
-	--configuration_file ${SPARK_HOME}/conf/core-site.xml \
-	--source_configuration_file ${HBASE_CONF_DIR}/hbase-site.xml \
-	--resolve_environment_variables
-    
+   
     HBASE_CLASSPATH="$(${HBASE_INSTALL_DIR}/bin/hbase classpath)"
 
     # Setup classpath and bootstrap classpath
     echo -e "spark.executor.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
     echo -e "spark.driver.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+    echo -e "spark.executor.extraClassPath ${HBASE_CLASSPATH//:/,}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+    echo -e "spark.driver.extraClassPath ${HBASE_CLASSPATH//:/,}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
     echo -e "spark.jars ${HBASE_CLASSPATH//:/,}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
 
     # Add PREFIX to env so that applications can use it to create a Spark Context
     echo -e "export PREFIX=${PREFIX}" >> "${SPARK_HOME}/conf/spark-env.sh"
     
     # Spark-shell: include jars and ALPN on bootstrap classpath
-    sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --jars ${HBASE_CLASSPATH//:/,}) \n SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS}) \n" "${SPARK_HOME}/bin/utils.sh"
+    sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --jars ${HBASE_CLASSPATH//:/,}) \n SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS}) \n SUBMISSION_OPTS+=( --driver-class-path ${HBASE_CLASSPATH//:/,}) " "${SPARK_HOME}/bin/utils.sh"
 
 else 
     # if the SCALA_TARBALL_URI is set, it means the user includes spark_env.sh in the arguments of bdutil, but put it before bigtable_env.sh
