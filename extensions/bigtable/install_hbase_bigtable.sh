@@ -98,7 +98,7 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     echo -e "export PREFIX=${PREFIX}" >> "${SPARK_HOME}/conf/spark-env.sh"
 #    echo -e "export SPARK_SUBMIT_OPTS=\"\${SPARK_SUBMIT_OPTS} --jars ${HBASE_CLASSPATH} --driver-java-options ${ALPN_JAVA_OPTS} --driver-class-path ${HBASE_CLASSPATH}\"" >> "${SPARK_HOME}/conf/spark-env.sh"
     # Spark-shell: include jars and ALPN on bootstrap classpath
-#    sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --jars ${HBASE_CLASSPATH}) \n SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS}) \n SUBMISSION_OPTS+=( --driver-class-path ${HBASE_CLASSPATH}) " "${SPARK_HOME}/bin/utils.sh"
+    sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --jars ${HBASE_CLASSPATH}) \n SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS}) \n SUBMISSION_OPTS+=( --driver-class-path ${HBASE_CLASSPATH}) " "${SPARK_HOME}/bin/utils.sh"
 
 else 
     # if the SCALA_TARBALL_URI is set, it means the user includes spark_env.sh in the arguments of bdutil, but put it before bigtable_env.sh
