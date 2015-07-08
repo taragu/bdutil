@@ -168,7 +168,6 @@ if [[ "$(hostname -s)" == "${MASTER_HOSTNAME}" ]]; then
 fi
 
 # Misc Spark Properties that will be loaded by spark-submit.
-# TODO(user): Instead of single extraClassPath, use a lib directory.
 cat << EOF >> ${SPARK_INSTALL_DIR}/conf/spark-defaults.conf
 spark.eventLog.enabled true
 spark.eventLog.dir ${SPARK_EVENTLOG_DIR}
