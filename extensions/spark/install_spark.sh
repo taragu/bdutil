@@ -35,7 +35,6 @@ fi
 
 SPARK_TARBALL=${SPARK_TARBALL_URI##*/}
 SPARK_MAJOR_VERSION=$(sed 's/spark-\([0-9]*\).*/\1/' <<<${SPARK_TARBALL})
-#gsutil cp ${SPARK_TARBALL_URI} /home/hadoop/${SPARK_TARBALL}
 download_bd_resource ${SPARK_TARBALL_URI} /home/hadoop/${SPARK_TARBALL}
 tar -C /home/hadoop -xzvf /home/hadoop/${SPARK_TARBALL}
 mv /home/hadoop/spark*/ ${SPARK_INSTALL_DIR}
