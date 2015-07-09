@@ -119,7 +119,7 @@ else
   echo "Invalid mode: '${SPARK_MODE}'. Preserving default behavior." >&2
   SPARK_MASTER='default'
 fi
-#export SPARK_CLASSPATH=\$SPARK_CLASSPATH:${LOCAL_GCS_JAR}
+
 # Help spark find scala and the GCS connector.
 cat << EOF >> ${SPARK_INSTALL_DIR}/conf/spark-env.sh
 export SCALA_HOME=${SCALA_INSTALL_DIR}
