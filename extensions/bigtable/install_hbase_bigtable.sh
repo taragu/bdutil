@@ -90,6 +90,7 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     # Setup classpath and bootstrap classpath
     echo -e "spark.executor.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
     echo -e "spark.driver.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+    # TODO: Set up HBase on classpaths and restart necessary daemons so that we don't need to use spark.jars for the HBase jars.
     echo -e "spark.jars ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
 
     # Add PREFIX to env so that applications can use it to create a Spark Context
