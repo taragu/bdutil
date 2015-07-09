@@ -54,7 +54,11 @@ JAVAOPTS="$JAVAOPTS -Xbootclasspath/p:$BIGTABLE_BOOT_OPTS"
 GCE_SERVICE_ACCOUNT_SCOPES+=(
   'https://www.googleapis.com/auth/cloud-bigtable.admin'
   'https://www.googleapis.com/auth/cloud-bigtable.data'
-  'https://www.googleapis.com/auth/cloud-bigtable.data.readonly')
+  'https://www.googleapis.com/auth/cloud-bigtable.data.readonly'
+  'https://www.googleapis.com/auth/devstorage.read_only'
+  'https://www.googleapis.com/auth/logging.write'
+  'https://www.googleapis.com/auth/cloud-platform'
+  'https://www.googleapis.com/auth/pubsub') # the last two scopes were found here: click on oauth (https://developers.google.com/apis-explorer/#p/pubsub/v1beta2/pubsub.projects.subscriptions.create)
 
 export ALPN_JAVA_OPTS=" -Xbootclasspath/p:${ALPN_CLASSPATH}"
 export ALPN_CLASSPATH

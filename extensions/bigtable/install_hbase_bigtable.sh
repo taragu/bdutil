@@ -90,8 +90,8 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     # Setup classpath and bootstrap classpath
     echo -e "spark.executor.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
     echo -e "spark.driver.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
-    echo -e "spark.executor.extraClassPath ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
-    echo -e "spark.driver.extraClassPath ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+#    echo -e "spark.executor.extraClassPath ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+#    echo -e "spark.driver.extraClassPath ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
     echo -e "spark.jars ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
 
     # Add PREFIX to env so that applications can use it to create a Spark Context
@@ -99,6 +99,21 @@ if [ -d "/home/hadoop/spark-install/" ]; then
 
     # Spark-shell: include jars and ALPN on bootstrap classpath (needed for Spark 1.3, not 1.4)
     sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --jars ${HBASE_CLASSPATH}) \n SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS}) \n SUBMISSION_OPTS+=( --driver-class-path ${HBASE_CLASSPATH}) " "${SPARK_HOME}/bin/utils.sh"
+
+
+    #TEMP: INSTALL CLOUD PUBSUB
+    # download spark-cloud-pubsub connector, and pubsub jar (TEMP: put them in /home/hadoop/)
+    PUBSUB_TARBALL_URI="http://central.maven.org/maven2/com/google/apis/google-api-services-pubsub/v1-rev2-1.20.0/google-api-services-pubsub-v1-rev2-1.20.0.jar"
+    PUBSUB_JAR="google-api-services-pubsub-v1-rev2-1.20.0.jar"
+    SPARK_PUBSUB_CONNECTOR_TARBALL_URI="gs://test_bdutil/spark-cloud-pubsub-connector_2.10-0.0.jar"
+    SPARK_PUBSUB_CONNECTOR_JAR="spark-cloud-pubsub-connector_2.10-0.0.jar"
+    download_bd_resource "${PUBSUB_TARBALL_URI}" "/home/hadoop/${PUBSUB_JAR}"
+    download_bd_resource "${SPARK_PUBSUB_CONNECTOR_TARBALL_URI}" "/home/hadoop/${SPARK_PUBSUB_CONNECTOR_JAR}"
+
+    # add them to classpath
+    sed -i '/^spark.jars/d' "${SPARK_HOME}/conf/spark-defaults.conf"
+    echo -e "spark.jars /home/hadoop/${PUBSUB_JAR},/home/hadoop/${SPARK_PUBSUB_CONNECTOR_JAR},${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
+
 
 else 
     # if the SCALA_TARBALL_URI is set, it means the user includes spark_env.sh in the arguments of bdutil, but put it before bigtable_env.sh
