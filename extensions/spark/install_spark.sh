@@ -129,6 +129,7 @@ export SPARK_DAEMON_MEMORY=${SPARK_DAEMON_MEMORY}m
 export SPARK_WORKER_DIR=${SPARK_WORKDIR}
 export SPARK_LOCAL_DIRS=${SPARK_TMPDIR}
 export SPARK_LOG_DIR=${SPARK_LOG_DIR}
+export SPARK_DIST_CLASSPATH+=:\$(${HADOOP_INSTALL_DIR}/bin/hadoop classpath)
 EOF
 
 # For Spark 0.9.1 and older, Spark properties must be passed in programmatically
