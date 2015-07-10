@@ -83,22 +83,13 @@ echo -e "HBASE_OPTS=\"\${HBASE_OPTS} ${BIGTABLE_BOOT_OPTS}\"" >> "${HBASE_CONF_D
 # Configure Spark
 if [ -d "/home/hadoop/spark-install/" ]; then
     SPARK_HOME="/home/hadoop/spark-install"
-    export BIGTABLE_CLASSPATH
-    HBASE_CLASSPATH="$(${HBASE_INSTALL_DIR}/bin/hbase classpath)"
-    HBASE_CLASSPATH=${HBASE_CLASSPATH//:/,}
-
     # Setup classpath and bootstrap classpath
     echo -e "spark.executor.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
     echo -e "spark.driver.extraJavaOptions ${ALPN_JAVA_OPTS}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
-    # TODO: Set up HBase on classpaths and restart necessary daemons so that we don't need to use spark.jars for the HBase jars.
-    echo -e "spark.jars ${HBASE_CLASSPATH}" >> "${SPARK_HOME}/conf/spark-defaults.conf"
-
     # Add PREFIX to env so that applications can use it to create a Spark Context
     echo -e "export PREFIX=${PREFIX}" >> "${SPARK_HOME}/conf/spark-env.sh"
-
     # Spark-shell: include jars and ALPN on bootstrap classpath (needed for Spark 1.3, not 1.4)
     sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --driver-java-options ${ALPN_JAVA_OPTS} ) " "${SPARK_HOME}/bin/utils.sh"
-
 else 
     # if the SCALA_TARBALL_URI is set, it means the user includes spark_env.sh in the arguments of bdutil, but put it before bigtable_env.sh
     if [ ! -z "${SCALA_TARBALL_URI:-}" ]; then 
