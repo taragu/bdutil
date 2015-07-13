@@ -110,7 +110,8 @@ if [ -d "/home/hadoop/spark-install/" ]; then
     tar -zxvf ../${SPARK_PUBSUB_CONNECTOR_TARBALL} ./
     sbt package
     cp target/scala-2.10/${SPARK_PUBSUB_CONNECTOR_JAR} /home/hadoop/
-    
+    sudo chmod -R 777 /home/hadoop/spark-cloud-pubsub-connector
+
     # add them to classpath
     HBASE_CLASSPATH="$(${HBASE_INSTALL_DIR}/bin/hbase classpath)"
     HBASE_CLASSPATH=${HBASE_CLASSPATH//:/,}
