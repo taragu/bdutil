@@ -199,4 +199,63 @@ if [ ! -z "${ALPN_CLASSPATH:-}" ]; then
 	# Spark-shell: include ALPN on bootstrap classpath (needed for Spark 1.3, not 1.4)
 	sed -i "/SUBMISSION_OPTS=()/a SUBMISSION_OPTS+=( --driver-java-options -Xbootclasspath/p:${ALPN_CLASSPATH} ) " "${SPARK_INSTALL_DIR}/bin/utils.sh"
     fi
+
+    # Create bigtable wrapper shell scripts for spark-submit and spark-shell
+    echo -e "#!/usr/bin/env bash" >> "${SPARK_INSTALL_DIR}/bin/bigtable-spark.sh"
+    cat << EOF >> "${SPARK_INSTALL_DIR}/bin/bigtable-spark.sh"
+CONFIG_OPTS=()
+APPLICATION_ARGS=()
+EXTRA_CLASSPATH=""
+contains_jars=false
+contains_extra_jars=false
+
+while ((\$#)); do
+    case "\$1" in
+	--jars)
+	    contains_jars=true
+            if [ "\${contains_extra_jars}" = "false" ]; then
+		CONFIG_OPTS+=("\$1"); shift
+		CONFIG_OPTS+=("\$1"); shift
+	    else 
+		echo "Please only set --jars or --extraJars, not both"
+		exit 1
+	    fi
+	    ;;
+	--extraJars)
+            contains_extra_jars=true
+	    if [ "\${contains_jars}" = "false" ]; then
+	        shift
+	        EXTRA_CLASSPATH="\$1"; shift
+	    else 
+	        echo "Please only set --jars or --extraJars, not both"
+	        exit 1
+	    fi
+	    ;;
+	*)
+	    APPLICATION_ARGS+=("\$1"); shift
+	    ;;
+    esac
+done
+if [[ "\${contains_extra_jars}" = "false"  &&  "\${contains_jars}" = "false" ]]; then #if does contain jars --> it would've been set in the previous while loop 
+    CONFIG_OPTS+=( --jars \$((hbase classpath) | tr \":\" \",\") )
+elif [[ "\${contains_extra_jars}" = "true"  &&  "\${contains_jars}" = "false" ]]; then
+    CONFIG_OPTS+=( --jars \$((hbase classpath) | tr \":\" \",\"),\${EXTRA_CLASSPATH} )
+fi
+
+EOF
+
+    echo -e "#!/usr/bin/env bash" >> "${SPARK_INSTALL_DIR}/bin/bigtable-spark-submit"
+    cat << EOF >> "${SPARK_INSTALL_DIR}/bin/bigtable-spark-submit"
+. bigtable-spark.sh "\$@"
+SPARK_DIST_CLASSPATH="\$(hbase classpath)" spark-submit "\${CONFIG_OPTS[@]}" "\${APPLICATION_ARGS[@]}"
+EOF
+    chmod 750 "${SPARK_INSTALL_DIR}/bin/bigtable-spark-submit"
+
+    echo -e "#!/usr/bin/env bash" >> "${SPARK_INSTALL_DIR}/bin/bigtable-spark-shell"
+    cat << EOF >> "${SPARK_INSTALL_DIR}/bin/bigtable-spark-shell"
+. bigtable-spark.sh "\$@"
+SPARK_DIST_CLASSPATH="\$(hbase classpath)" spark-shell "\${CONFIG_OPTS[@]}" "\${APPLICATION_ARGS[@]}"
+EOF
+    chmod 750 "${SPARK_INSTALL_DIR}/bin/bigtable-spark-shell"
+
 fi
